@@ -1,10 +1,11 @@
+from os import walk
+from os.path import join, isdir
 import re
 
 __author__ = 'mathieu'
 
-# fileToProcess = "/Users/mathieu/Dvpt/workspace/voltage/voltage-commons/voltage-commons-utils/src/main/java/com/francetelecom/voltage/technicalservice/util/PieceJointe.java"
-fileToProcess = "/Users/mathieu/Dvpt/workspace/voltage/voltage-core/voltage-core-business/src/main/java/com/francetelecom/voltage/business/demande/requisition/impl/ManageDemandeBusinessImpl.java"
-
+projectPath = "/Users/mathieu/Dvpt/workspace/voltage"
+# projectPath = "/Users/mathieu/Dvpt/workspace/voltage/voltage-core/voltage-core-business"
 
 importStatementPattern = re.compile(r'\s*import\s*org\.apache\.log4j\.Logger\s*;\s*')
 
@@ -14,7 +15,7 @@ declareStatementPattern = re.compile(
     r'(Logger)\s*'
     r'(?P<logVariableName>\w+)\s*=\s*'
     r'Logger\s*\.\s*getLogger\s*\(\s*'
-    r'(?P<classLogger>\w+)\s*\.\s*class\s*\)\s*;\s*')
+    r'(?P<classLogger>\w+)\s*\.\s*class\s*(\.getName\(\))?\)\s*;\s*')
 
 
 
@@ -77,6 +78,11 @@ def writeLines(filePath, lines):
         for line in lines:
             outfile.write(line)
 
+def writeLinesLn(filePath, lines):
+    with open(filePath, 'w') as outfile:
+        for line in lines:
+            outfile.write(line + '\n')
+
 
 def processFile(filePath):
     lines = getLines(filePath)
@@ -90,6 +96,20 @@ def processFile(filePath):
 if __name__ == '__main__':
     """
     """
-    processFile(fileToProcess)
+    if not isdir(projectPath):
+        print "Not a valid directory path {0}".format(projectPath)
+        exit()
+
+    javaProjectFiles = []
+
+    for dirPath, _, fileNames in walk(projectPath):
+        javaProjectFiles.extend([ join(dirPath, fileName) for fileName in fileNames if fileName.endswith(".java") ])
+
+    writeLinesLn("/Users/mathieu/Dvpt/workspace/Log4J2SLF4J/javaFileList.txt", javaProjectFiles)
+
+    print "Starting convertion of {0} files from directory {1}...".format(len(javaProjectFiles), projectPath)
+
+    for javaFile in javaProjectFiles:
+        processFile(javaFile)
 
     pass
