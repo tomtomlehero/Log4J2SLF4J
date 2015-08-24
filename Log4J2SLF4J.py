@@ -7,6 +7,8 @@ __author__ = 'mathieu'
 projectPath = "/Users/mathieu/Dvpt/workspace/voltage"
 # projectPath = "/Users/mathieu/Dvpt/workspace/voltage/voltage-core/voltage-core-business"
 
+singleTestJavaFile =  "/Users/mathieu/Dvpt/workspace/voltage/voltage-commons/voltage-commons-utils/src/main/java/com/francetelecom/voltage/technicalservice/util/XMLUtils.java"
+
 importStatementPattern = re.compile(r'\s*import\s*org\.apache\.log4j\.Logger\s*;\s*')
 
 declareStatementPattern = re.compile(
@@ -15,9 +17,10 @@ declareStatementPattern = re.compile(
     r'(Logger)\s*'
     r'(?P<logVariableName>\w+)\s*=\s*'
     r'Logger\s*\.\s*getLogger\s*\(\s*'
-    r'(?P<classLogger>\w+)\s*\.\s*class\s*(\.getName\(\))?\)\s*;\s*')
+    r'(?P<classLogger>\w+)\s*\.\s*class\s*(\.\s*getName\s*\(\s*\)\s*)?\)\s*;\s*')
 
 
+extendedTrimPatter = re.compile(r'\s+')
 
 def getLines(filePath):
     lines = []
@@ -46,6 +49,16 @@ def extractMutliLinesStatement(lines, start, pattern, maxLinesCount=0):
     return None, None
 
 
+def extTrim(s):
+    """
+    Remove heading and trailing spaces
+    + extra useless inner blanks
+    will turn "private  \t\t...  static        final  \t  "
+    into a clean "private static final"
+    """
+    return extendedTrimPatter.sub(' ', s).strip()
+
+
 def processReplacement(lines):
     for i in range(len(lines)):
 
@@ -61,11 +74,12 @@ def processReplacement(lines):
 
             if declareStatementMatch:
                 (indent, modifiers, logVariableName, classLogger) = declareStatementMatch.group('indent', 'modifiers', 'logVariableName', 'classLogger')
-                # could be better : should handle "private  \t\t...  static     final  \t  "
-                modifiers = modifiers.strip()
+
+                modifiers = extTrim(modifiers)
+
                 lines[i] = "{0}{1} Logger {2} = LoggerFactory.getLogger({3}.class);\n".format(indent, modifiers, logVariableName, classLogger)
 
-                # promote former statement trailing lines to nothing
+                # promote statement's former trailing lines to nothing
                 for k in range(declareStatementLineCount - 1):
                     lines[i + k + 1] = ""
                 # shift in the lines iteration
@@ -99,6 +113,11 @@ if __name__ == '__main__':
     if not isdir(projectPath):
         print "Not a valid directory path {0}".format(projectPath)
         exit()
+
+
+    # processFile(singleTestJavaFile)
+    # exit()
+
 
     javaProjectFiles = []
 
