@@ -20,6 +20,23 @@ declareStatementPattern = re.compile(
     r'(?P<classLogger>\w+)\s*\.\s*class\s*(\.\s*getName\s*\(\s*\)\s*)?\)\s*;\s*')
 
 
+
+logStatementPattern = re.compile(
+    r'(?P<indent>\s*)'
+    r''
+    r''
+    r'')
+
+testString = 'log.debug("Chargement du fichier de conf (" + System.getProperty("FichierConfigurationPeriode") + ") de l\'application");'
+
+
+# log.debug("Chargement du fichier de configuration de la periode ("
+#         + System.getProperty("FichierConfigurationPeriode")
+#         + ") de l'application");
+
+
+
+
 extendedTrimPatter = re.compile(r'\s+')
 
 def getLines(filePath):
